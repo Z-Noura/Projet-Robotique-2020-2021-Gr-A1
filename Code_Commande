@@ -218,7 +218,7 @@ void loop() {
   }
 }
 
-
+// Affichage des différentes pages
 
 void acceuil_fct (){
   display.clearDisplay();
@@ -245,5 +245,9 @@ void menu_fct (){
    display.setTextColor(WHITE);
    display.setCursor(40,0);
    display.println("Menu");
+   display.setTextSize(1);
+   display.setTextColor(WHITE);
+   display.setCursor(0,24);
+   display.println("Eteindre les appareils");
    display.display();
 }
