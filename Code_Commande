@@ -7,14 +7,21 @@
 #define SCREEN_HEIGHT 64
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
 SerialTransfer myTransfer;
-const int BPD=2;
+
+const int BPG=2;
+const int BPD=3;
+const int BPJG=9;
+const int BPJD=10;
 
 bool badge_old=0;
 bool badge_new=1;
 bool BP1=0;
 bool acceuil=1;
 bool menu=0;
+
+const unsigned long dureeAntiRebond = 1;
 
 static const unsigned char PROGMEM bluetooth[] = {
 0x00, 0x10, 0x18, 0x14, 0x92, 0x52, 0x34, 0x18, 0x18, 0x34, 0x52, 0x92, 0x14, 0x18, 0x10, 0x00
@@ -151,7 +158,14 @@ static const unsigned char PROGMEM rfid[] = {
  
 void setup() {
   pinMode(BPD, INPUT_PULLUP);
-  
+  pinMode(BPG, INPUT_PULLUP);
+  pinMode(BPJG, INPUT_PULLUP);
+  pinMode(BPJD, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(BPD), Interrupt_BPD, FALLING);
+  attachInterrupt(digitalPinToInterrupt(BPG), Interrupt_BPG, FALLING);
+  attachInterrupt(digitalPinToInterrupt(BPJD), Interrupt_BPJD, FALLING);
+  attachInterrupt(digitalPinToInterrupt(BPJG), Interrupt_BPJG, FALLING);
   
   Serial.begin(38400);
   myTransfer.begin(Serial);
@@ -246,4 +260,52 @@ void menu_fct (){
    display.setCursor(40,0);
    display.println("Menu");
    display.display();
+}
+
+
+
+// Interruption
+
+void Interrupt_BPD()
+{
+  static unsigned long old_time = 0;
+ 
+  unsigned long new_time = millis();
+  if ((new_time - old_time) > dureeAntiRebond) {
+    // fonction 
+    old_time = new_time;
+  }
+}
+
+void Interrupt_BPG()
+{
+  static unsigned long old_time = 0;
+ 
+  unsigned long new_time = millis();
+  if ((new_time - old_time) > dureeAntiRebond) {
+    // fonction 
+    old_time = new_time;
+  }
+}
+
+void Interrupt_BPJD()
+{
+  static unsigned long old_time = 0;
+ 
+  unsigned long new_time = millis();
+  if ((new_time - old_time) > dureeAntiRebond) {
+    // fonction 
+    old_time = new_time;
+  }
+}
+
+void Interrupt_BPJG()
+{
+  static unsigned long old_time = 0;
+ 
+  unsigned long new_time = millis();
+  if ((new_time - old_time) > dureeAntiRebond) {
+    // fonction 
+    old_time = new_time;
+  }
 }
