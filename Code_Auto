@@ -1,0 +1,252 @@
+#include "Wire.h"
+#include "Adafruit_LiquidCrystal.h"
+#include <NewPing.h>
+
+#define enA 3  // vitesse moteurs gauches
+#define in1 39  // direction moteurs gauches
+#define in2 37
+#define enB 4  // vitesse moteurs droits
+#define in3 43  // direction moteurs droits
+#define in4 45
+
+int motorSpeedA = 0;
+int motorSpeedB = 0;
+int motorSpeedC = 0;
+int motorSpeedD = 0;
+
+Adafruit_LiquidCrystal lcd(40, 38, 36, 34, 32, 30);
+bool Start_auto = 1;
+
+const int pinultra = 23; // Trigger Pin of Ultrasonic Sensor
+const int pinson = 25; // Echo Pin of Ultrasonic Sensor
+int dist;
+int vitesse;
+#include <Servo.h>
+Servo monServomoteur;
+Servo monServomoteur2;
+Servo monServomoteur3;
+
+void setup (){
+  pinMode(enA, OUTPUT);
+  pinMode(enB, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(in3, OUTPUT);
+  pinMode(in4, OUTPUT);
+
+  pinMode(pinultra, OUTPUT);
+  pinMode(pinson, INPUT);
+
+ monServomoteur.attach(7);   //servo crémaillère
+  monServomoteur2.attach(8);   //servo crémaillère
+  monServomoteur3.attach(6);    //servo ultrason
+  Serial.begin(9600);
+  monServomoteur3.write(90);
+
+}
+void loop () {
+  int droite,devant,gauche;
+if (Start_auto)
+    vitesse = 700;
+    droite = Turn_sonar("droite");
+    gauche = Turn_sonar("gauche");
+    devant = Turn_sonar("devant");
+    if (droite and gauche and devant){
+      Serial.println("deriere");
+      motor_auto("deriere",300);
+      delay(1000);  
+      motor_auto("arret",NULL);    
+      }
+    else if (droite){
+      Serial.println("gauche");
+      motor_auto("gauche",vitesse);
+      delay(1000);
+      motor_auto("arret",NULL);
+    }
+    else if (gauche or devant){
+      Serial.println("droite");
+      motor_auto("droite",vitesse);
+      delay(1000);
+      motor_auto("arret",NULL);
+    }
+    else{
+      Serial.println("devant");
+      motor_auto("devant",vitesse);
+      delay(1000);
+      motor_auto("arret",NULL);
+      }}
+    
+ void motor_auto(char*dir,int vitesse){
+  if (vitesse == NULL){
+    vitesse = 700;
+  }
+  if (dir == "droite"){
+    motor_control(900,vitesse);
+  }
+  else if (dir == "gauche"){
+    motor_control(100,vitesse);
+  }
+  else if (dir == "arret"){
+    motor_control(550,550);
+  }
+  else {
+    motor_control(500,vitesse);
+    }
+  }
+
+  // Y-axis used for forward and backward control
+void motor_control(int xAxis,int yAxis){
+  if (yAxis < 470) {
+    // Set Motor A backward
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+    
+
+    // Set Motor B backward
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+
+    // Convert the declining Y-axis readings for going backward from 470 to 0 into 0 to 255 value for the PWM signal for increasing the motor speed
+    motorSpeedA = map(yAxis, 470, 0, 0, 255);
+    motorSpeedB = map(yAxis, 470, 0, 0, 255);
+    motorSpeedC = map(yAxis, 470, 0, 0, 255);
+    motorSpeedD = map(yAxis, 470, 0, 0, 255);
+
+    analogWrite(enA, motorSpeedA); // vitesse moteurs gauches
+    analogWrite(enB, motorSpeedA);
+  }
+  else if (yAxis > 550) {
+    // Set Motor A forward
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
+
+    // Set Motor B forward
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
+
+    // Convert the increasing Y-axis readings for going forward from 550 to 1023 into 0 to 255 value for the PWM signal for increasing the motor speed
+    motorSpeedA = map(yAxis, 550, 1023, 0, 255);
+    motorSpeedB = map(yAxis, 550, 1023, 0, 255);
+    motorSpeedC = map(yAxis, 550, 1023, 0, 255);
+    motorSpeedD = map(yAxis, 550, 1023, 0, 255);
+
+    analogWrite(enA, motorSpeedA); // vitesse moteurs gauches
+    analogWrite(enB, motorSpeedA);
+  }
+  // If joystick stays in middle the motors are not moving
+  else {
+    motorSpeedA = 0;
+    motorSpeedB = 0;
+    motorSpeedC = 0;
+    motorSpeedD = 0;
+  }
+
+  // X-axis used for left and right control
+  if (xAxis < 470) {
+    // Convert the declining X-axis readings from 470 to 0 into increasing 0 to 255 value
+    int xMapped = map(xAxis, 470, 0, 0, 255);
+    // Move to left - decrease left motor speed, increase right motor speed
+    motorSpeedA = motorSpeedA - xMapped;
+    motorSpeedB = motorSpeedB + xMapped;
+    motorSpeedC = motorSpeedC - xMapped;
+    motorSpeedD = motorSpeedD + xMapped;
+    // Confine the range from 0 to 255
+    if (motorSpeedA < 0) {
+      motorSpeedA = 0;
+    }
+    if (motorSpeedB > 255) {
+      motorSpeedB = 255;
+    }
+    if (motorSpeedC < 0) {
+      motorSpeedC = 0;
+    }
+    if (motorSpeedD > 255) {
+      motorSpeedD = 255;
+    }
+  }
+  if (xAxis > 550) {
+    // Convert the increasing X-axis readings from 550 to 1023 into 0 to 255 value
+    int xMapped = map(xAxis, 550, 1023, 0, 255);
+    // Move right - decrease right motor speed, increase left motor speed
+    motorSpeedA = motorSpeedA + xMapped;
+    motorSpeedB = motorSpeedB - xMapped;
+
+    // Confine the range from 0 to 255
+    if (motorSpeedA > 255) {
+      motorSpeedA = 255;
+    }
+    if (motorSpeedB < 0) {
+      motorSpeedB = 0;
+    }
+    if (motorSpeedC > 255) {
+      motorSpeedC = 255;
+    }
+    if (motorSpeedD < 0) {
+      motorSpeedD = 0;
+    }
+  }
+  // Prevent buzzing at low speeds (Adjust according to your motors. My motors couldn't start moving if PWM value was below value of 70)
+  if (motorSpeedA < 70) {
+    motorSpeedA = 0;
+  }
+  if (motorSpeedB < 70) {
+    motorSpeedB = 0;
+  }
+
+  analogWrite(enA, motorSpeedA); // Send PWM signal to motor A
+  analogWrite(enB, motorSpeedB); // Send PWM signal to motor B
+}
+bool Turn_sonar(char* dir){
+ Cremaillere(0);
+ int state;
+ if (dir == "droite"){
+  monServomoteur3.write(170);}
+ else if (dir == "gauche"){
+  monServomoteur3.write(10);
+ }
+ else if (dir == "devant"){
+  monServomoteur3.write(90);
+ }
+ delay(700);
+ int Son = distance_sonar();
+ if (Son < 5){
+    state = 1;
+    Serial.print("Oui");
+    Serial.print(" ");
+    Serial.println(Son);
+    }
+   else{state = 0;
+    Serial.print("Non");
+    Serial.print(" ");
+    Serial.println(Son);}
+return state;    
+    
+}
+
+
+long microsecondsToCentimeters(long microseconds) {
+   return microseconds / 29 / 2;
+}
+
+int distance_sonar(){
+  long duration, inches, cm;
+  bool state;
+  digitalWrite(pinultra, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pinultra, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pinultra, LOW);
+  
+  duration = pulseIn(pinson, HIGH);
+  cm = microsecondsToCentimeters(duration);
+  return cm;
+  }
+ void Cremaillere(int dir){
+ //Placer ici le code pour la cremaillere 
+ if( dir){ monServomoteur.write(180);
+    monServomoteur2.write(0);
+    monServomoteur3.write(90);}
+ else{monServomoteur.write(40);    //crémaillère basse
+    monServomoteur2.write(140);}
+  delay(700);
+ }
