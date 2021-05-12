@@ -200,9 +200,9 @@ bool Turn_sonar(char* dir){
  Cremaillere(0);
  int state;
  if (dir == "droite"){
-  monServomoteur3.write(170);}
+  monServomoteur3.write(160);}
  else if (dir == "gauche"){
-  monServomoteur3.write(10);
+  monServomoteur3.write(20);
  }
  else if (dir == "devant"){
   monServomoteur3.write(90);
