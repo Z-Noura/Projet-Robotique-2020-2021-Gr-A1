@@ -109,8 +109,6 @@ void motor_control(int xAxis,int yAxis){
     // Convert the declining Y-axis readings for going backward from 470 to 0 into 0 to 255 value for the PWM signal for increasing the motor speed
     motorSpeedA = map(yAxis, 470, 0, 0, 255);
     motorSpeedB = map(yAxis, 470, 0, 0, 255);
-    motorSpeedC = map(yAxis, 470, 0, 0, 255);
-    motorSpeedD = map(yAxis, 470, 0, 0, 255);
 
     analogWrite(enA, motorSpeedA); // vitesse moteurs gauches
     analogWrite(enB, motorSpeedA);
@@ -148,21 +146,14 @@ void motor_control(int xAxis,int yAxis){
     // Move to left - decrease left motor speed, increase right motor speed
     motorSpeedA = motorSpeedA - xMapped;
     motorSpeedB = motorSpeedB + xMapped;
-    motorSpeedC = motorSpeedC - xMapped;
-    motorSpeedD = motorSpeedD + xMapped;
+
     // Confine the range from 0 to 255
     if (motorSpeedA < 0) {
       motorSpeedA = 0;
     }
     if (motorSpeedB > 255) {
-      motorSpeedB = 255;
-    }
-    if (motorSpeedC < 0) {
-      motorSpeedC = 0;
-    }
-    if (motorSpeedD > 255) {
-      motorSpeedD = 255;
-    }
+      motorSpeedB = 255;}
+    
   }
   if (xAxis > 550) {
     // Convert the increasing X-axis readings from 550 to 1023 into 0 to 255 value
@@ -178,12 +169,7 @@ void motor_control(int xAxis,int yAxis){
     if (motorSpeedB < 0) {
       motorSpeedB = 0;
     }
-    if (motorSpeedC > 255) {
-      motorSpeedC = 255;
-    }
-    if (motorSpeedD < 0) {
-      motorSpeedD = 0;
-    }
+    
   }
   // Prevent buzzing at low speeds (Adjust according to your motors. My motors couldn't start moving if PWM value was below value of 70)
   if (motorSpeedA < 70) {
