@@ -47,7 +47,7 @@ void setup (){
 void loop () {
   int droite,devant,gauche;
 if (Start_auto)
-    vitesse = 700;
+    vitesse = 255;
     droite = Turn_sonar("droite");
     gauche = Turn_sonar("gauche");
     devant = Turn_sonar("devant");
