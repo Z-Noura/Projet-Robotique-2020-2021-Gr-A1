@@ -1,0 +1,144 @@
+#include "SerialTransfer.h"
+#include <Wire.h>
+
+SerialTransfer myTransfer;
+const int BPD=2;
+
+bool badge_old=0;
+bool badge_new=1;
+bool BP1=0;
+bool acceuil=1;
+bool menu=0;
+void setup{
+Serial.begin(38400);
+  myTransfer.begin(Serial);
+  
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  
+  // Clear the buffer.
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(5,0);
+  display.println("Cybertruck"); 
+  // Draw bitmap on the screen
+  display.drawBitmap(0, 16, image_data_Saraarray, 128, 54, 1);
+  display.display();
+  delay(3000);
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(7,0);
+  display.println("Scannez votre badge"); 
+  display.drawBitmap(0, 16, rfid, 128, 48, 1);
+  display.display();
+  delay(3000);
+}
+ 
+void loop() {
+  if(myTransfer.available())
+  {
+    // use this variable to keep track of how many
+    // bytes we've processed from the receive buffer
+    uint16_t recSize = 0;
+
+    recSize = myTransfer.rxObj(badge_new, recSize);
+    
+  }
+  if(badge_new){
+    if(acceuil){
+      acceuil_fct();
+    }
+    if (!digitalRead(BPD)){
+      delay(10);
+      BP1=1;
+    }
+    if (digitalRead(BPD) && BP1){
+      BP1=0;
+      menu=1;
+      menu_fct();
+      while (digitalRead(BPD)){
+      }
+      delay(10);
+      while(!digitalRead(BPD)){
+      }
+      delay(10);
+      acceuil=1;
+        
+      
+        
+      
+      }
+      
+    
+    
+  }
+}
+
+
+Serial.begin(38400);
+  myTransfer.begin(Serial);
+  
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  
+  // Clear the buffer.
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(5,0);
+  display.println("Cybertruck"); 
+  // Draw bitmap on the screen
+  display.drawBitmap(0, 16, image_data_Saraarray, 128, 54, 1);
+  display.display();
+  delay(3000);
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(7,0);
+  display.println("Scannez votre badge"); 
+  display.drawBitmap(0, 16, rfid, 128, 48, 1);
+  display.display();
+  delay(3000);
+}
+ 
+void loop() {
+  if(myTransfer.available())
+  {
+    // use this variable to keep track of how many
+    // bytes we've processed from the receive buffer
+    uint16_t recSize = 0;
+
+    recSize = myTransfer.rxObj(badge_new, recSize);
+    
+  }
+  if(badge_new){
+    if(acceuil){
+      acceuil_fct();
+    }
+    if (!digitalRead(BPD)){
+      delay(10);
+      BP1=1;
+    }
+    if (digitalRead(BPD) && BP1){
+      BP1=0;
+      menu=1;
+      menu_fct();
+      while (digitalRead(BPD)){
+      }
+      delay(10);
+      while(!digitalRead(BPD)){
+      }
+      delay(10);
+      acceuil=1;
+        
+      
+        
+      
+      }
+      
+    
+    
+  }
+}
+
+
