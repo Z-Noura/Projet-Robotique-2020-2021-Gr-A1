@@ -1,5 +1,4 @@
 #include "Wire.h"
-#include "Adafruit_LiquidCrystal.h"
 #include <NewPing.h>
 
 #define enA 3  // vitesse moteurs gauches
@@ -14,13 +13,13 @@ int motorSpeedB = 0;
 int motorSpeedC = 0;
 int motorSpeedD = 0;
 
-Adafruit_LiquidCrystal lcd(40, 38, 36, 34, 32, 30);
 bool Start_auto = 1;
 
 const int pinultra = 23; // Trigger Pin of Ultrasonic Sensor
 const int pinson = 25; // Echo Pin of Ultrasonic Sensor
 int dist;
 int vitesse;
+bool Start;
 #include <Servo.h>
 Servo monServomoteur;
 Servo monServomoteur2;
@@ -33,6 +32,8 @@ void setup (){
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
+  pinMode(22,OUTPUT);
+  digitalWrite(22,HIGH);
 
   pinMode(pinultra, OUTPUT);
   pinMode(pinson, INPUT);
@@ -42,157 +43,125 @@ void setup (){
   monServomoteur3.attach(6);    //servo ultrason
   Serial.begin(9600);
   monServomoteur3.write(90);
+  Start = 1;
+
+  
 
 }
 void loop () {
   int droite,devant,gauche;
-if (Start_auto)
-    vitesse = 255;
+  if (Start){
     droite = Turn_sonar("droite");
-    gauche = Turn_sonar("gauche");
-    devant = Turn_sonar("devant");
+  gauche = Turn_sonar("gauche");
+  devant = Turn_sonar("devant");
+  Start = 0;}
+if (Start_auto){
+    vitesse = 900;
+    
     if (droite and gauche and devant){
       Serial.println("deriere");
-      motor_auto("deriere",300);
-      delay(1000);  
-      motor_auto("arret",NULL);    
+      motor_auto("deriere");
+      delay(700);  
+      motor_auto("arret");
+        
       }
     else if (droite){
       Serial.println("gauche");
-      motor_auto("gauche",vitesse);
-      delay(1000);
-      motor_auto("arret",NULL);
+      motor_auto("gauche");
+      delay(700);
+      motor_auto("arret");
+      
     }
     else if (gauche or devant){
       Serial.println("droite");
-      motor_auto("droite",vitesse);
-      delay(1000);
-      motor_auto("arret",NULL);
+      motor_auto("droite");
+      delay(700);
+      motor_auto("arret");
+      
     }
     else{
       Serial.println("devant");
-      motor_auto("devant",vitesse);
-      delay(1000);
-      motor_auto("arret",NULL);
+      motor_auto("devant");
+      devant = Turn_sonar("devant");
+      motor_auto("arret");
+      }
       }}
     
- void motor_auto(char*dir,int vitesse){
+ void motor_auto(char*dir){
   if (vitesse == NULL){
-    vitesse = 700;
   }
   if (dir == "droite"){
-    motor_control(900,vitesse);
-  }
-  else if (dir == "gauche"){
-    motor_control(100,vitesse);
-  }
-  else if (dir == "arret"){
-    motor_control(550,550);
-  }
-  else {
-    motor_control(500,vitesse);
-    }
-  }
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
 
-  // Y-axis used for forward and backward control
-void motor_control(int xAxis,int yAxis){
-  if (yAxis < 470) {µ
-  // Set Motor A backward
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
-
-    // Set Motor B backward
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
 
+    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enB, 200);
     
-
-    // Convert the declining Y-axis readings for going backward from 470 to 0 into 0 to 255 value for the PWM signal for increasing the motor speed
-    motorSpeedA = map(yAxis, 470, 0, 0, 255);
-    motorSpeedB = map(yAxis, 470, 0, 0, 255);
-
-    analogWrite(enA, motorSpeedA); // vitesse moteurs gauches
-    analogWrite(enB, motorSpeedA);
+    
   }
-  else if (yAxis > 550) {
-    // Set Motor A backward
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
-    
+  else if (dir == "gauche"){
+     // Set Motor A backward
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
 
     // Set Motor B backward
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
 
-    
-    // Convert the increasing Y-axis readings for going forward from 550 to 1023 into 0 to 255 value for the PWM signal for increasing the motor speed
-    motorSpeedA = map(yAxis, 550, 1023, 0, 255);
-    motorSpeedB = map(yAxis, 550, 1023, 0, 255);
-
-
-    analogWrite(enA, motorSpeedA); // vitesse moteurs gauches
-    analogWrite(enB, motorSpeedA);
+    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enB, 200);
   }
-  // If joystick stays in middle the motors are not moving
-  else {
-    motorSpeedA = 0;
-    motorSpeedB = 0;
-  
+  else if (dir == "arret"){
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
+
+    // Set Motor B backward
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+
+    analogWrite(enA, 0); // vitesse moteurs gauches
+    analogWrite(enB, 0);
   }
+  else if( dir == "devant"){
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
 
-  // X-axis used for left and right control
-  if (xAxis < 470) {
-    // Convert the declining X-axis readings from 470 to 0 into increasing 0 to 255 value
-    int xMapped = map(xAxis, 470, 0, 0, 255);
-    // Move to left - decrease left motor speed, increase right motor speed
-    motorSpeedA = motorSpeedA - xMapped;
-    motorSpeedB = motorSpeedB + xMapped;
+    // Set Motor B backward
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
 
-    // Confine the range from 0 to 255
-    if (motorSpeedA < 0) {
-      motorSpeedA = 0;
+    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enB, 200);
     }
-    if (motorSpeedB > 255) {
-      motorSpeedB = 255;}
-    
-  }
-  if (xAxis > 550) {
-    // Convert the increasing X-axis readings from 550 to 1023 into 0 to 255 value
-    int xMapped = map(xAxis, 550, 1023, 0, 255);
-    // Move right - decrease right motor speed, increase left motor speed
-    motorSpeedA = motorSpeedA + xMapped;
-    motorSpeedB = motorSpeedB - xMapped;
+   else{
+    digitalWrite(in1, HIGH);
+    digitalWrite(in2, LOW);
 
-    // Confine the range from 0 to 255
-    if (motorSpeedA > 255) {
-      motorSpeedA = 255;
-    }
-    if (motorSpeedB < 0) {
-      motorSpeedB = 0;
-    }
-    
-  }
-  // Prevent buzzing at low speeds (Adjust according to your motors. My motors couldn't start moving if PWM value was below value of 70)
-  if (motorSpeedA < 70) {
-    motorSpeedA = 0;
-  }
-  if (motorSpeedB < 70) {
-    motorSpeedB = 0;
-  }
+    // Set Motor B backward
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, HIGH);
 
-  analogWrite(enA, motorSpeedA); // Send PWM signal to motor A
-  analogWrite(enB, motorSpeedB); // Send PWM signal to motor B
-}
+    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enB, 200);
+    
+    }
+  }
 bool Turn_sonar(char* dir){
  Cremaillere(0);
  int state;
  if (dir == "droite"){
-  monServomoteur3.write(160);}
+  monServomoteur3.write(160);
+  delay(300);}
  else if (dir == "gauche"){
   monServomoteur3.write(20);
+  delay(300);
  }
  else if (dir == "devant"){
   monServomoteur3.write(90);
+  delay(300);
  }
  delay(700);
  int Son = distance_sonar();
