@@ -1,20 +1,24 @@
+// Bibliothèques
+
 #include "SerialTransfer.h"
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128
+#define SCREEN_WIDTH 128   // longueur et largeur de l'oled en pixel
 #define SCREEN_HEIGHT 64
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);  // initialisation de l'oled
+SerialTransfer myTransfer;   // initialisation de la communication UART
 
-SerialTransfer myTransfer;
-
-const int BPG=2;
-const int BPD=3;
-const int BPJG=9;
+// déclaration des pins physiques
+const int BPD=2;
+const int BPG=3;
 const int BPJD=10;
+const int BPJG=9;
 
+
+bool connect=0;
 bool badge_old=0;
 bool badge_new=1;
 bool BP1=0;
@@ -22,6 +26,7 @@ bool acceuil=1;
 bool menu=0;
 
 const unsigned long dureeAntiRebond = 1;
+//Code hexa images et symboles
 
 static const unsigned char PROGMEM bluetooth[] = {
 0x00, 0x10, 0x18, 0x14, 0x92, 0x52, 0x34, 0x18, 0x18, 0x34, 0x52, 0x92, 0x14, 0x18, 0x10, 0x00
@@ -38,11 +43,27 @@ static const unsigned char PROGMEM nosignal1[] = {
 0x03, 0x00, 0x1B, 0x44, 0x1B, 0x28, 0x1B, 0x10, 0x1B, 0x28, 0x1B, 0x44, 0x00, 0x00, 0x00, 0x00
 };
 
-static const unsigned char PROGMEM battery [] = {
+static const unsigned char PROGMEM battery5 [] = {
 0x3C, 0xFF, 0x81, 0xBD, 0xBD, 0x81, 0xBD, 0xBD, 0x81, 0xBD, 0xBD, 0x81, 0xBD, 0xBD, 0x81, 0xFF
 };
 
-static const unsigned char PROGMEM image_data_Saraarray[] = {
+static const unsigned char PROGMEM battery4 [] = {
+0x3C, 0xFF, 0x81, 0x81, 0x81, 0x81, 0xBD, 0xBD, 0x81, 0xBD, 0xBD, 0x81, 0xBD, 0xBD, 0x81, 0xFF
+};
+
+static const unsigned char PROGMEM battery3 [] = {
+0x3C, 0xFF, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xBD, 0xBD, 0x81, 0xBD, 0xBD, 0x81, 0xFF
+};
+
+static const unsigned char PROGMEM battery2 [] = {
+0x3C, 0xFF, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xBD, 0xBD, 0x81, 0xFF
+};
+
+static const unsigned char PROGMEM battery1 [] = {
+0x3C, 0xFF, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xFF
+};
+
+static const unsigned char PROGMEM tesla[] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x73, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xC0, 0x0F, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -157,19 +178,23 @@ static const unsigned char PROGMEM rfid[] = {
 
  
 void setup() {
+  // boutons en entrées avec pullup interne
   pinMode(BPD, INPUT_PULLUP);
   pinMode(BPG, INPUT_PULLUP);
-  pinMode(BPJG, INPUT_PULLUP);
   pinMode(BPJD, INPUT_PULLUP);
-
+  pinMode(BPJG, INPUT_PULLUP);
+  
+  // déclaration des interruptions externes
   attachInterrupt(digitalPinToInterrupt(BPD), Interrupt_BPD, FALLING);
   attachInterrupt(digitalPinToInterrupt(BPG), Interrupt_BPG, FALLING);
-  attachInterrupt(digitalPinToInterrupt(BPJD), Interrupt_BPJD, FALLING);
+  attachInterrupt(digitalPinToInterrupt(BPJD), IUnterrupt_BPJD, FALLING);
   attachInterrupt(digitalPinToInterrupt(BPJG), Interrupt_BPJG, FALLING);
-  
+
+  // initialisation UART et protocole
   Serial.begin(38400);
   myTransfer.begin(Serial);
   
+  // initialisation écran avec adresses i2c
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   
   // Clear the buffer.
@@ -179,7 +204,7 @@ void setup() {
   display.setCursor(5,0);
   display.println("Cybertruck"); 
   // Draw bitmap on the screen
-  display.drawBitmap(0, 16, image_data_Saraarray, 128, 54, 1);
+  display.drawBitmap(0, 16, tesla, 128, 54, 1);
   display.display();
   delay(3000);
   display.clearDisplay();
@@ -197,10 +222,13 @@ void loop() {
   {
     // use this variable to keep track of how many
     // bytes we've processed from the receive buffer
+    connect=1;
     uint16_t recSize = 0;
-
     recSize = myTransfer.rxObj(badge_new, recSize);
     
+  }
+  else{
+    connect=0;
   }
   if(badge_new){
     if(acceuil){
@@ -232,14 +260,34 @@ void loop() {
   }
 }
 
-
+// Affichage des différentes pages
 
 void acceuil_fct (){
   display.clearDisplay();
   display.drawBitmap(0, 0, bluetooth, 8, 16, 1);
-  display.drawBitmap(10, 0, signal1, 16, 16, 1);
-  display.drawBitmap(30, 0, nosignal1, 16, 16, 1);
-  display.drawBitmap(119, 0, battery, 8, 16, 1);
+  if(connect){
+    display.drawBitmap(10, 0, signal1, 16, 16, 1);
+  }
+  else{
+    display.drawBitmap(30, 0, nosignal1, 16, 16, 1);
+  }
+  if(analogRead(1)>=1000){
+    display.drawBitmap(119, 0, battery5, 8, 16, 1);
+  }  
+  else if(analogRead(1)>=950 && analogRead(1)<1000){
+    display.drawBitmap(119, 0, battery4, 8, 16, 1);
+  }
+  else if(analogRead(1)>=900 && analogRead(1)<950){
+    display.drawBitmap(119, 0, battery3, 8, 16, 1);
+  }
+  else if(analogRead(1)>=850 && analogRead(1)<900){
+    display.drawBitmap(119, 0, battery2, 8, 16, 1);
+  }
+   else{ 
+    display.drawBitmap(119, 0, battery1, 8, 16, 1);
+  }
+
+
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(80,48);
@@ -259,6 +307,10 @@ void menu_fct (){
    display.setTextColor(WHITE);
    display.setCursor(40,0);
    display.println("Menu");
+   display.setTextSize(1);
+   display.setTextColor(WHITE);
+   display.setCursor(0,24);
+   display.println("Eteindre");
    display.display();
 }
 
