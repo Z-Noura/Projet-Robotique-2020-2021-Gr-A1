@@ -56,10 +56,11 @@ struct STRUCT {
   bool BPBuzzer;
   bool BPJoy1;
   bool BPJoy2;
-  int Mode;
+  byte Mode;
   int Dist_sonar;
   char RFID_State;
 } testStruct;
+
 
 char arr[6];
 
