@@ -1,4 +1,3 @@
-
 //Code Robot final  //main
 
 #include "SerialTransfer.h"
@@ -22,6 +21,7 @@
 int motorSpeedA = 0;
 int motorSpeedB = 0;
 int start_manu;
+int Start_auto;
 
 int Sw = 49; 
 
@@ -82,7 +82,7 @@ void setup()
   monServomoteur3.attach(6);    //servo ultrason
   Serial.begin(9600);
   monServomoteur3.write(90);
-  Start = 1;
+  Start_auto = 1;
 
 
   Serial.begin(38400);
@@ -98,9 +98,21 @@ void setup()
 
 void loop()
 { 
+
+  if(myTransfer.available())
+  {
+    // use this variable to keep track of how many
+    // bytes we've processed from the receive buffer
+    uint16_t recSize = 0;
+
+    recSize = myTransfer.rxObj(testStruct, recSize);
+  
+  }
+
+  
   distance = distance_sonar(); 
-   int xAxis = analogRead(A9); // Read Joysticks X-axis
-   int yAxis = analogRead(A8); // Read Joysticks Y-axis 
+   int xAxis = testStruct.Joy1X; // Read Joysticks X-axis
+   int yAxis = testStruct.Joy2Y; // Read Joysticks Y-axis 
   
 
   int droite,devant,gauche;
@@ -279,17 +291,7 @@ if (Start_auto){
 
       }
        }
-if(myTransfer.available())
-  {
-    // use this variable to keep track of how many
-    // bytes we've processed from the receive buffer
-    uint16_t recSize = 0;
 
-    recSize = myTransfer.rxObj(testStruct, recSize);
-    Serial.print("valx : ");
-    Serial.println(testStruct.Joy1X);
-  
-  }
   
   // use this variable to keep track of how many
   // bytes we're stuffing in the transmit buffer
@@ -309,8 +311,7 @@ if(myTransfer.available())
 }
 
  void motor_auto(char*dir){
-  if (vitesse == NULL){
-  }
+
   if (dir == "droite"){
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
@@ -370,7 +371,7 @@ if(myTransfer.available())
     
     }
   }
-  
+
 bool Turn_sonar(char* dir){
  Cremaillere(0);
  int state;
@@ -388,7 +389,7 @@ bool Turn_sonar(char* dir){
  delay(700);
 
  int Son = distance_sonar();
- if (Son < 20){
+ if (Son < 30){
     state = 1;
     Serial.print("Oui");
     Serial.print(" ");
@@ -415,8 +416,7 @@ int distance_sonar(){
   digitalWrite(pinultra, HIGH);
   delayMicroseconds(10);
   digitalWrite(pinultra, LOW);
-  
-  duration = pulseIn(pinson, HIGH);
+
   cm = microsecondsToCentimeters(duration);
   return cm;
   }
@@ -427,6 +427,7 @@ int distance_sonar(){
     monServomoteur3.write(88);}
  else{monServomoteur.write(40);    //crémaillère basse
     monServomoteur2.write(140);}
+    delay(700);}
   
 
 
