@@ -23,6 +23,8 @@ int motorSpeedB = 0;
 int start_manu;
 int Start_auto;
 
+
+
 int Sw = 49; 
 
 const int pinultra = 23; // Trigger Pin of Ultrasonic Sensor
@@ -54,7 +56,7 @@ struct STRUCT {
   bool BPBuzzer;
   bool BPJoy1;
   bool BPJoy2;
-  char Mode;
+  int Mode;
   int Dist_sonar;
   char RFID_State;
 } testStruct;
@@ -169,7 +171,7 @@ else{
   droite = Turn_sonar("droite");
   gauche = Turn_sonar("gauche");
   devant = Turn_sonar("devant");
-if (Start_auto){
+if (testStruct.Mode == 2){
     vitesse = 900;
     
     if (droite and gauche and devant){
@@ -200,7 +202,7 @@ if (Start_auto){
       motor_auto("arret");
       }}
       
-      if (start_manu){
+  else if (testStruct.Mode == 1){
         if (yAxis < 470) {
     // Set Motor A backward
     digitalWrite(in1, HIGH);
