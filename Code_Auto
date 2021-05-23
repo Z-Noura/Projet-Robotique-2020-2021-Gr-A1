@@ -50,11 +50,9 @@ void setup (){
 }
 void loop () {
   int droite,devant,gauche;
-  if (Start){
-    droite = Turn_sonar("droite");
+  droite = Turn_sonar("droite");
   gauche = Turn_sonar("gauche");
   devant = Turn_sonar("devant");
-  Start = 0;}
 if (Start_auto){
     vitesse = 900;
     
@@ -82,7 +80,7 @@ if (Start_auto){
     else{
       Serial.println("devant");
       motor_auto("devant");
-      devant = Turn_sonar("devant");
+      delay(700);
       motor_auto("arret");
       }
       }}
@@ -137,8 +135,8 @@ if (Start_auto){
     analogWrite(enB, 200);
     }
    else{
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, HIGH);
 
     // Set Motor B backward
     digitalWrite(in3, LOW);
@@ -153,10 +151,10 @@ bool Turn_sonar(char* dir){
  Cremaillere(0);
  int state;
  if (dir == "droite"){
-  monServomoteur3.write(160);
+  monServomoteur3.write(150);
   delay(300);}
  else if (dir == "gauche"){
-  monServomoteur3.write(20);
+  monServomoteur3.write(30);
   delay(300);
  }
  else if (dir == "devant"){
@@ -165,7 +163,7 @@ bool Turn_sonar(char* dir){
  }
  delay(700);
  int Son = distance_sonar();
- if (Son < 5){
+ if (Son < 20){
     state = 1;
     Serial.print("Oui");
     Serial.print(" ");
@@ -201,7 +199,7 @@ int distance_sonar(){
  //Placer ici le code pour la cremaillere 
  if( dir){ monServomoteur.write(180);
     monServomoteur2.write(0);
-    monServomoteur3.write(90);}
+    monServomoteur3.write(88);}
  else{monServomoteur.write(40);    //crémaillère basse
     monServomoteur2.write(140);}
   delay(700);
