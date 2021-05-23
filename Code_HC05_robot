@@ -1,8 +1,4 @@
-
-#include "SerialTransfer.h" //main
-
-#include <SoftwareSerial.h>
-SoftwareSerial mSerial( 0,1);
+#include "SerialTransfer.h"
 
 
 SerialTransfer myTransfer;
@@ -17,26 +13,35 @@ struct STRUCT {
   bool BPJoy2;
   char Mode;
   int Dist_sonar;
-  bool RFID_State;
+  char RFID_State;
 } testStruct;
 
-char arr[] = "hello";
+char arr[6];
 
 
 void setup()
 {
   Serial.begin(38400);
-  mSerial.begin(38400);
-  myTransfer.begin(mSerial);
-  pinMode(21,OUTPUT);
-  digitalWrite(21,HIGH);
+  Serial2.begin(38400);
+  myTransfer.begin(Serial2);
+  pinMode(22,OUTPUT);
+  digitalWrite(22,HIGH);
 }
 
 
 void loop()
 {
-  testStruct.Joy1X = analogRead(A0);  //Joy vertical
-  testStruct.Joy1Y = analogRead(A1);  //Joy horizontal
+  if(myTransfer.available())
+  {
+    // use this variable to keep track of how many
+    // bytes we've processed from the receive buffer
+    uint16_t recSize = 0;
+
+    recSize = myTransfer.rxObj(testStruct, recSize);
+    Serial.print("valx : ");
+    Serial.println(testStruct.Joy1X);
+  
+  }
   
   // use this variable to keep track of how many
   // bytes we're stuffing in the transmit buffer
@@ -51,13 +56,6 @@ void loop()
   ///////////////////////////////////////// Send buffer
   myTransfer.sendData(sendSize);
 
-  if(myTransfer.available())
-  {
-    // use this variable to keep track of how many
-    // bytes we've processed from the receive buffer
-    uint16_t recSize = 0;
-
-    recSize = myTransfer.rxObj(testStruct, recSize);
-  }
+  
   delay(500);
 }

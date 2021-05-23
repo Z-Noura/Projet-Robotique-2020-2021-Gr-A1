@@ -1,6 +1,4 @@
-
-#include "SerialTransfer.h" //main
-
+#include "SerialTransfer.h"
 #include <SoftwareSerial.h>
 SoftwareSerial mSerial( 0,1);
 
