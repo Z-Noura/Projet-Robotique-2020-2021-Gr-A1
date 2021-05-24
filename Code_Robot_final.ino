@@ -276,6 +276,16 @@ int    devant = Turn_sonar("devant");
       delay(700);
       motor_auto("arret");
       }
+      if(myTransfer.available())
+  {
+    // use this variable to keep track of how many
+    // bytes we've processed from the receive buffer
+    uint16_t recSize = 0;
+
+    recSize = myTransfer.rxObj(testStruct, recSize);
+  
+  }
+
 
 }
 void mode_manu(){
