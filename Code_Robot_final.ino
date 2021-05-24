@@ -288,7 +288,7 @@ void mode_manu(){
     recSize = myTransfer.rxObj(testStruct, recSize);
   
   }
-  if (yAxis < 470) {
+  if (yAxis > 550) {
     // Set Motor A backward
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
@@ -298,11 +298,11 @@ void mode_manu(){
     digitalWrite(in4, LOW);
     
     // Convert the declining Y-axis readings for going backward from 470 to 0 into 0 to 255 value for the PWM signal for increasing the motor speed
-    motorSpeedA = map(yAxis, 470, 0, 0, 255);
-    motorSpeedB = map(yAxis, 470, 0, 0, 255);
+motorSpeedA = map(yAxis, 550, 1023, 0, 255);
+    motorSpeedB = map(yAxis, 550, 1023, 0, 255);
 
   }
-  else if (yAxis > 550) {
+  else if (yAxis < 470) {
     // Set Motor A forward
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
@@ -312,8 +312,9 @@ void mode_manu(){
     digitalWrite(in4, HIGH);
    
     // Convert the increasing Y-axis readings for going forward from 550 to 1023 into 0 to 255 value for the PWM signal for increasing the motor speed
-    motorSpeedA = map(yAxis, 550, 1023, 0, 255);
-    motorSpeedB = map(yAxis, 550, 1023, 0, 255);
+    
+        motorSpeedA = map(yAxis, 470, 0, 0, 255);
+    motorSpeedB = map(yAxis, 470, 0, 0, 255);
 
   }
   // If joystick stays in middle the motors are not moving
@@ -324,9 +325,9 @@ void mode_manu(){
   }
 
   // X-axis used for left and right control
-  if (xAxis < 470) {
+  if (xAxis > 550) {
     // Convert the declining X-axis readings from 470 to 0 into increasing 0 to 255 value
-    int xMapped = map(xAxis, 470, 0, 0, 255);
+      int xMapped = map(xAxis, 550, 1023, 0, 255);
     // Move to left - decrease left motor speed, increase right motor speed
     motorSpeedA = motorSpeedA - xMapped;
     motorSpeedB = motorSpeedB + xMapped;
@@ -340,9 +341,10 @@ void mode_manu(){
     }
     
   }
-  if (xAxis > 550) {
+  if (xAxis < 470) {
     // Convert the increasing X-axis readings from 550 to 1023 into 0 to 255 value
-    int xMapped = map(xAxis, 550, 1023, 0, 255);
+  
+    int xMapped = map(xAxis, 470, 0, 0, 255);
     // Move right - decrease right motor speed, increase left motor speed
     motorSpeedA = motorSpeedA + xMapped;
     motorSpeedB = motorSpeedB - xMapped;
