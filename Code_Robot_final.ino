@@ -160,16 +160,15 @@ void loop()
     lcd.print("Auth access     ");
     lcd.println();
     pass = 1;
-    delay(1000);
   }
   else   {
     
     lcd.setCursor(0,1);
     Serial.println(" Access denied");
     lcd.print(" Access denied  ");
-    delay(1000);
     return;
  }}
+
 else{
   droite = Turn_sonar("droite");
   gauche = Turn_sonar("gauche");
@@ -178,14 +177,12 @@ if (testStruct.Mode == 2){
     vitesse = 900;
     
     if (droite and gauche and devant){
-      Serial.println("deriere");
       motor_auto("deriere");
       delay(700);  
       motor_auto("arret");
         
       }
     else if (droite){
-      Serial.println("gauche");
       motor_auto("gauche");
       delay(700);
       motor_auto("arret");
@@ -308,9 +305,6 @@ if (testStruct.Mode == 1){
 
   ///////////////////////////////////////// Send buffer
   myTransfer.sendData(sendSize);
-
-  
-  delay(700);
 }
 
  void motor_auto(char*dir){
