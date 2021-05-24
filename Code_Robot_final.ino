@@ -160,14 +160,14 @@ void loop()
     lcd.print("Auth access     ");
     lcd.println();
     pass = 1;
-    delay(3000);
+    delay(1000);
   }
   else   {
     
     lcd.setCursor(0,1);
     Serial.println(" Access denied");
     lcd.print(" Access denied  ");
-    delay(3000);
+    delay(1000);
     return;
  }}
 else{
@@ -205,7 +205,7 @@ if (testStruct.Mode == 2){
       motor_auto("arret");
       }}
       
-  else if (testStruct.Mode == 1){
+if (testStruct.Mode == 1){
         if (yAxis < 470) {
     // Set Motor A backward
     digitalWrite(in1, HIGH);
