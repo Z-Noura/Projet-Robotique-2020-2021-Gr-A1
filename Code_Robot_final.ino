@@ -147,9 +147,6 @@ void loop()
      content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
      content.concat(String(mfrc522.uid.uidByte[i], HEX));
   }
-  Serial.println();
-  Serial.print("Message : ");
-  lcd.print("Message : ");
   content.toUpperCase();
  // if (content.substring(1) == "BD 31 15 2B") //change here the UID of the card/cards that you want to give access
   if (content.substring(1) == "47 48 C0 A7")
@@ -160,7 +157,18 @@ void loop()
     lcd.print("Auth access     ");
     lcd.println();
     pass = 1;
-  }
+    testStruct.RFID_State = pass;
+    uint16_t sendSize = 0;
+
+  //////////////////////////////////////// Stuff buffer with struct
+    sendSize = myTransfer.txObj(testStruct, sendSize);
+
+  ///////////////////////////////////////// Stuff buffer with array
+    sendSize = myTransfer.txObj(arr, sendSize);
+
+  ///////////////////////////////////////// Send buffer
+    myTransfer.sendData(sendSize);
+    }
   else   {
     
     lcd.setCursor(0,1);
@@ -173,6 +181,7 @@ else{
   droite = Turn_sonar("droite");
   gauche = Turn_sonar("gauche");
   devant = Turn_sonar("devant");
+
 if (testStruct.Mode == 2){
     vitesse = 900;
     
@@ -285,16 +294,7 @@ if (testStruct.Mode == 1){
 
   if (Sw == 1){
    distance = distance_sonar(); 
-  
-  }
-
-      }
-       }
-
-  testStruct.RFID_State = pass;
-  testStruct.Dist_sonar = distance;
-  // use this variable to keep track of how many
-  // bytes we're stuffing in the transmit buffer
+   testStruct.Dist_sonar = distance;
   uint16_t sendSize = 0;
 
   ///////////////////////////////////////// Stuff buffer with struct
@@ -305,6 +305,17 @@ if (testStruct.Mode == 1){
 
   ///////////////////////////////////////// Send buffer
   myTransfer.sendData(sendSize);
+  
+  }
+
+      }
+       }
+
+  
+  
+  // use this variable to keep track of how many
+  // bytes we're stuffing in the transmit buffer
+  
 }
 
  void motor_auto(char*dir){
