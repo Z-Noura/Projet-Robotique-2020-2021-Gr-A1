@@ -138,9 +138,21 @@ if (Start_auto){
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
 
+<<<<<<< Updated upstream
     // Set Motor B backward
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
+=======
+    analogWrite(enA, motorSpeedA); // vitesse moteurs gauches
+    analogWrite(enB, motorSpeedB);
+  }
+  // If joystick stays in middle the motors are not moving
+  else {
+    motorSpeedA = 0;
+    motorSpeedB = 0;
+  
+  }
+>>>>>>> Stashed changes
 
     analogWrite(enA, 200); // vitesse moteurs gauches
     analogWrite(enB, 200);
