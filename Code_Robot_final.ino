@@ -241,7 +241,9 @@ int    devant = Turn_sonar("devant");
       lcd.setCursor(0,0);
       lcd.print("deriere");
       motor_auto("deriere");
-      delay(700);  
+      delay(700); 
+      motor_auto("droite"); 
+      delay(700); 
       motor_auto("arret");
         
       }
