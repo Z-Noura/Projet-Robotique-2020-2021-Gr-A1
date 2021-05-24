@@ -117,6 +117,7 @@ void loop()
    int xAxis = testStruct.Joy1X; // Read Joysticks X-axis
    int yAxis = testStruct.Joy2Y; // Read Joysticks Y-axis 
    int Sw = testStruct.BPJoy1;
+   int Buzzer = testStruct.BPBuzzer;
   
 
   int droite,devant,gauche;
