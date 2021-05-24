@@ -7,47 +7,47 @@
 #include <LiquidCrystal.h>
 #include <Servo.h>
 
-#define echoPin 25 // attach pin D2 Arduino to pin Echo of HC-SR04
-#define trigPin 23 //attach pin D3 Arduino to pin Trig of HC-SR04
 
+//Declaration sonar
+#define echoPin 25 
+#define trigPin 23 
+int distance;
 
+//Declaration rfid
 #define SS_PIN 53
 #define RST_PIN 5
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+bool pass = 0;
 
+//Declaration pins moteurs
 #define enA 3  // vitesse moteurs gauches
+
 #define in1 39  // direction moteurs gauches
 #define in2 37
+
 #define enB 4  // vitesse moteurs droits
+
 #define in3 43  // direction moteurs droits
 #define in4 45
 
-int motorSpeedA = 0;
+int motorSpeedA = 0; //Declaration vitesse moteurs
 int motorSpeedB = 0;
-int start_manu;
-int Start_auto;
 
+//Declaration buzzer
 const int buzzer  = 13;
 
-int Sw = 49; 
-
-const int pinultra = 23; // Trigger Pin of Ultrasonic Sensor
-const int pinson = 25; // Echo Pin of Ultrasonic Sensor
-int dist;
-int distance;
-
-MFRC522 mfrc522(SS_PIN, RST_PIN);
+//Declaration LCD
 LiquidCrystal lcd = LiquidCrystal(40, 38, 36, 34, 32, 30);
-bool pass = 0;
 
-int vitesse;
-bool Start;
-
+//Declaration Servos
 Servo monServomoteur;
 Servo monServomoteur2;
 Servo monServomoteur3;
 
+//Declaration classe SerialTransfert
 SerialTransfer myTransfer;
 
+//Declaration struct
 struct STRUCT {
   int Joy1X ;
   int Joy1Y;
@@ -61,353 +61,328 @@ struct STRUCT {
   char RFID_State;
 } testStruct;
 
-
-char arr[6];
-
-
 void setup()
 {
-  pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
-  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
+  //Reglages entres-sorties
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT); 
+
   pinMode(buzzer, OUTPUT);
+
   pinMode(enA, OUTPUT);
   pinMode(enB, OUTPUT);
   pinMode(in1, OUTPUT);
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
+
   pinMode(22,OUTPUT);
   digitalWrite(22,HIGH);
+  
+  //Affichage Ecran de base
+  lcd.begin(16, 2);
+  lcd.print("Arduino:");
+  delay(5000);
 
-  pinMode(pinultra, OUTPUT);
-  pinMode(pinson, INPUT);
- pinMode(Sw,INPUT_PULLUP);
- lcd.begin(16, 2);
- lcd.print("Arduino:");
- delay(5000);
- monServomoteur.attach(7);   //servo crémaillère
-  monServomoteur2.attach(8);   //servo crémaillère
+  //Attach pin servo
+  monServomoteur.attach(7);   //servos cremailleres
+  monServomoteur2.attach(8);
+
   monServomoteur3.attach(6);    //servo ultrason
-  Serial.begin(9600);
-  monServomoteur3.write(90);
-  Start_auto = 1;
 
+  monServomoteur3.write(90);  //Centrer Servo sonar pour eviter les blocages
 
+  //Ouverture ports serie
   Serial.begin(38400);
   Serial2.begin(38400);
-  SPI.begin();      // Initiate  SPI bus
- mfrc522.PCD_Init();   // Initiate MFRC522
+
+  SPI.begin();      // Init bus SPI
+  mfrc522.PCD_Init();   // Initiate MFRC522
+
   myTransfer.begin(Serial2);
-  pinMode(22,OUTPUT);
+
+  pinMode(22,OUTPUT);   //Reglages relais
   digitalWrite(22,HIGH);
-
-
 }
 
 void loop()
-{ 
-
-  if(myTransfer.available())
-  {
-    // use this variable to keep track of how many
-    // bytes we've processed from the receive buffer
-    uint16_t recSize = 0;
-
-    recSize = myTransfer.rxObj(testStruct, recSize);
-  
-  }
- 
-  distance = distance_sonar(); 
-  
-   
-                
-                  
-  
-
-  int droite,devant,gauche;
-   while (pass == 0){
-     // Look for new cards
-  if ( ! mfrc522.PICC_IsNewCardPresent()) 
-  {
-    return;
-  }
-  // Select one of the cards
-  if ( ! mfrc522.PICC_ReadCardSerial()) 
-  {
-    return;
-  }
-  //Show UID on serial monitor
-  lcd.setCursor(0,0);
-  Serial.print("UID tag :");
-  lcd.print("UID:");
-  String content= "";
-  byte letter;
-  for (byte i = 0; i < mfrc522.uid.size; i++) 
-  {
-     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
-     Serial.print(mfrc522.uid.uidByte[i], HEX);
-     lcd.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
-     lcd.print(mfrc522.uid.uidByte[i], HEX);
-     content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
-     content.concat(String(mfrc522.uid.uidByte[i], HEX));
-  }
-  Serial.println();
-  Serial.print("Message : ");
-  lcd.print("Message : ");
-  content.toUpperCase();
- // if (content.substring(1) == "BD 31 15 2B") //change here the UID of the card/cards that you want to give access
-  if (content.substring(1) == "47 48 C0 A7")
-  {
-    lcd.setCursor(0,1);
-    Serial.println("Authorized access");
-    Serial.println();
-    lcd.print("Auth access     ");
-    lcd.println();
-    testStruct.RFID_State=1;
-    pass = 1;
-                 
-    uint16_t sendSize = 0;
-
-  //////////////////////////////////////// Stuff buffer with struct
-    sendSize = myTransfer.txObj(testStruct, sendSize);
-
-  ///////////////////////////////////////// Stuff buffer with array
-    sendSize = myTransfer.txObj(arr, sendSize);
-
-  ///////////////////////////////////////// Send buffer
-    myTransfer.sendData(sendSize);
-  }
-  else   {
-    
-    lcd.setCursor(0,1);
-    Serial.println(" Access denied");
-    lcd.print(" Access denied  ");
-    return;
- }}
-
-while(pass == 1){
-  lcd.setCursor(0,0);
-  lcd.print("                 ");
-  lcd.setCursor(0,0);
-  lcd.print(testStruct.Mode);
-  if(myTransfer.available())
-  {
-    // use this variable to keep track of how many
-    // bytes we've processed from the receive buffer
-    uint16_t recSize = 0;
-
-    recSize = myTransfer.rxObj(testStruct, recSize);
-  
-  }
-
-while (testStruct.Mode == 2){
-   // tone(buzzer, 1000); // Send 1KHz sound signal...
-   // delay(1000);        // ...for 1 sec
-   // noTone(buzzer);     // Stop sound...
-     lcd.setCursor(0,1);
-     lcd.print("                 ");
-     lcd.setCursor(0,1);
-     lcd.print(testStruct.Mode);
-
-     mode_auto();
-   }
+{
+    if(myTransfer.available()) //Si buffer disponible
+    {
       
-while (testStruct.Mode == 1){
-  //tone(buzzer, 150); // Send 1KHz sound signal...
-  //delay(1000);        // ...for 1 sec
-  //noTone(buzzer);     // Stop sound...
-   lcd.setCursor(0,1);
-     lcd.print("                 ");
-     lcd.setCursor(0,1);
-     lcd.print(testStruct.Joy1Y);  
-     mode_manu();   
+      uint16_t recSize = 0; //Declaration delavariable qui suis la taille du buffer recu
 
-      }
-       }
-  
+      recSize = myTransfer.rxObj(testStruct, recSize); //Reception buffer
+    
+    }
 
-  
-
-}
-void mode_auto(){
- vitesse = 900;
-int    droite = Turn_sonar("droite");
-int    gauche = Turn_sonar("gauche");
-int    devant = Turn_sonar("devant");
-  
-    if (droite and gauche and devant){
-      lcd.setCursor(0,0);
-      lcd.print("                 ");
-      lcd.setCursor(0,0);
-      lcd.print("deriere");
-      motor_auto("deriere");
-      delay(700); 
-      motor_auto("droite"); 
-      delay(700); 
-      motor_auto("arret");
+    
+    while (pass == 0)  //Tant de le rfid ne detecte pas la bonne carte
+    {  
+        if ( ! mfrc522.PICC_IsNewCardPresent()) //Detection de cartes
+        {
+            return;
+        }
         
-      }
-    else if (droite){
-      lcd.setCursor(0,0);
-      lcd.print("                 ");
-      lcd.setCursor(0,0);
-      lcd.print("gauche");
-      motor_auto("gauche");
-      delay(700);
-      motor_auto("arret");
-      
-    }
-    else if (gauche or devant){
-      lcd.setCursor(0,0);
-      lcd.print("                 ");
-      lcd.setCursor(0,0);
-      lcd.print("droite");
-      motor_auto("droite");
-      delay(700);
-      motor_auto("arret");
-      
-    }
-    else{
-      lcd.setCursor(0,0);
-      lcd.print("                 ");
-      lcd.setCursor(0,0);
-      lcd.print("devant");
-      motor_auto("devant");
-      delay(700);
-      motor_auto("arret");
-      }
-      if(myTransfer.available())
-  {
-    // use this variable to keep track of how many
-    // bytes we've processed from the receive buffer
-    uint16_t recSize = 0;
+        if ( ! mfrc522.PICC_ReadCardSerial())  //Lecture carte
+        {
+            return;
+        }
 
-    recSize = myTransfer.rxObj(testStruct, recSize);
+        
+        lcd.setCursor(0,0); //Affichage ID lu
+        Serial.print("UID tag :");
+        lcd.print("UID:");
+
+        //Lecture Carte
+        String content= "";
+        byte letter;
+        for (byte i = 0; i < mfrc522.uid.size; i++) 
+        {
+            Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+            Serial.print(mfrc522.uid.uidByte[i], HEX);
+            lcd.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+            lcd.print(mfrc522.uid.uidByte[i], HEX);
+            content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+            content.concat(String(mfrc522.uid.uidByte[i], HEX));
+        }
+
+        Serial.println();
+        Serial.print("Message : ");
+        lcd.print("Message : ");
+        content.toUpperCase();
+
+        if (content.substring(1) == "47 48 C0 A7") //Si la carte presentee est la bonne
+        {                                          //Acces autorise     
+            lcd.setCursor(0,1);
+            Serial.println("Authorized access");
+            Serial.println();
+            lcd.print("Auth access     ");
+            lcd.println();
+            testStruct.RFID_State=1;
+            pass = 1;
+
+            //Envoi resultat dans buffer                      
+            uint16_t sendSize = 0;
+            sendSize = myTransfer.txObj(testStruct, sendSize);
+            myTransfer.sendData(sendSize);
+        }
+        else                                   //Mauvaise carte
+        {  
+          lcd.setCursor(0,1);                  //Acces refuse
+          Serial.println(" Access denied");
+          lcd.print(" Access denied  ");
+          return;
+        }
+    }
+
+    while(pass == 1)   //Quand l'acces est autorise
+    {
+        lcd.setCursor(0,0);
+        lcd.print("                 ");
+        lcd.setCursor(0,0);
+        lcd.print(testStruct.Mode);
+
+
+        if(myTransfer.available())  //Reception buffers
+        {
+            uint16_t recSize = 0;
+            recSize = myTransfer.rxObj(testStruct, recSize);
+        }
+
+        while (testStruct.Mode == 2) //activation mode auto si mode auto active
+        {
+              lcd.setCursor(0,1);
+              lcd.print("                 ");
+              lcd.setCursor(0,1);
+              lcd.print(testStruct.Mode);
+
+              mode_auto();
+        }
+            
+        while (testStruct.Mode == 1) //activation mode manu si mode manu active
+        {            
+            lcd.setCursor(0,1);
+            lcd.print("                 ");
+            lcd.setCursor(0,1);
+            lcd.print(testStruct.Joy1Y); 
+
+            mode_manu();  
+        }
+    }
+}
+
+
+void mode_auto()
+//Mode auto
+{
+    int droite = Turn_sonar("droite"); //Detection d'obstacles
+    int gauche = Turn_sonar("gauche");
+    int devant = Turn_sonar("devant");
   
-  }
+    if (droite and gauche and devant)  //si detection d'obstacles de tous les cotes
+    {
+        lcd.setCursor(0,0);
+        lcd.print("                 ");
+        lcd.setCursor(0,0);
+        lcd.print("deriere"); 
+        motor_auto("deriere"); //Reculer
+        delay(700); 
+        motor_auto("droite");  //Tourner a droite
+        delay(700); 
+        motor_auto("arret");   //arret     
+    }
+    else if (droite)                  //si detection d'obstacles a droite
+        lcd.setCursor(0,0);
+        lcd.print("                 ");
+        lcd.setCursor(0,0);
+        lcd.print("gauche");   
+        motor_auto("gauche");  //Tourner a gauche
+        delay(700);
+        motor_auto("arret");   //arret 
+      
+    }
+    else if (gauche or devant)       //si detection d'obstacles a gauche ou devant
+    {  
+        lcd.setCursor(0,0);
+        lcd.print("                 ");
+        lcd.setCursor(0,0);
+        lcd.print("droite");
+        motor_auto("droite");  //Tourner a droite
+        delay(700);
+        motor_auto("arret");   //arret 
+      
+    }
+    else                           //Sinon
+    {
+        lcd.setCursor(0,0);
+        lcd.print("                 ");
+        lcd.setCursor(0,0);
+        lcd.print("devant");
+        motor_auto("devant");  //Avancer
+        delay(700);
+        motor_auto("arret");   //arret 
+    }
+
+    if(myTransfer.available())  //Reception buffer
+    {
+         uint16_t recSize = 0;
+        recSize = myTransfer.rxObj(testStruct, recSize); 
+    }
 
 
 }
-void mode_manu(){
+void mode_manu()
+//Mode manu
+{    
+    if(myTransfer.available())  //Reception buffer
+    {
+      uint16_t recSize = 0;
 
-  int xAxis = testStruct.Joy1X; // Read Joysticks X-axis
-   int yAxis = testStruct.Joy1Y; // Read Joysticks Y-axis 
-   
-  if(myTransfer.available())
-  {
-    // use this variable to keep track of how many
-    // bytes we've processed from the receive buffer
-    uint16_t recSize = 0;
+      recSize = myTransfer.rxObj(testStruct, recSize);
+    
+    }
 
-    recSize = myTransfer.rxObj(testStruct, recSize);
-  
-  }
-  if (yAxis > 550) {
-    // Set Motor A backward
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
-  
-    // Set Motor B backward
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
-    
-    // Convert the declining Y-axis readings for going backward from 470 to 0 into 0 to 255 value for the PWM signal for increasing the motor speed
-motorSpeedA = map(yAxis, 550, 1023, 0, 255);
-    motorSpeedB = map(yAxis, 550, 1023, 0, 255);
+    int xAxis = testStruct.Joy1X; // Read Joysticks X-axis
+    int yAxis = testStruct.Joy1Y; // Read Joysticks Y-axis 
 
-  }
-  else if (yAxis < 470) {
-    // Set Motor A forward
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
-    
-    // Set Motor B forward
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
-   
-    // Convert the increasing Y-axis readings for going forward from 550 to 1023 into 0 to 255 value for the PWM signal for increasing the motor speed
-    
+    if (yAxis > 550)  //Joystick en bas
+    {
+        //Regler les moteurs pour tourner en arriere
+        digitalWrite(in1, HIGH);
+        digitalWrite(in2, LOW);
+      
+        digitalWrite(in3, HIGH);
+        digitalWrite(in4, LOW);
+        
+        //Calcul vitesses
+        motorSpeedA = map(yAxis, 550, 1023, 0, 255);
+        motorSpeedB = map(yAxis, 550, 1023, 0, 255);
+    }
+    else if (yAxis < 470) //Joystick en haut
+    {
+        //Regler les moteurs pour tourner en avant
+        digitalWrite(in1, LOW);
+        digitalWrite(in2, HIGH);
+        
+        digitalWrite(in3, LOW);
+        digitalWrite(in4, HIGH);
+      
+        //Calcul vitesses      
         motorSpeedA = map(yAxis, 470, 0, 0, 255);
-    motorSpeedB = map(yAxis, 470, 0, 0, 255);
+        motorSpeedB = map(yAxis, 470, 0, 0, 255);
+    }  
+    else //Joystick au milieu
+    {
+        motorSpeedA = 0;  //Arret moteurs
+        motorSpeedB = 0;
+    }
 
-  }
-  // If joystick stays in middle the motors are not moving
-  else {
-    motorSpeedA = 0;
-    motorSpeedB = 0;
- 
-  }
+    if (xAxis > 550) //Joystick a gauche
+    {
+        int xMapped = map(xAxis, 550, 1023, 0, 255); //Calcul delta vitesse a appliquer
 
-  // X-axis used for left and right control
-  if (xAxis > 550) {
-    // Convert the declining X-axis readings from 470 to 0 into increasing 0 to 255 value
-      int xMapped = map(xAxis, 550, 1023, 0, 255);
-    // Move to left - decrease left motor speed, increase right motor speed
-    motorSpeedA = motorSpeedA - xMapped;
-    motorSpeedB = motorSpeedB + xMapped;
-    
-    // Confine the range from 0 to 255
-    if (motorSpeedA < 0) {
+        // deplacement a gauche
+        motorSpeedA = motorSpeedA - xMapped;
+        motorSpeedB = motorSpeedB + xMapped;
+        
+        // Garder des vitesses de 0 a 255
+        if (motorSpeedA < 0) {
+            motorSpeedA = 0;
+        }
+        if (motorSpeedB > 255) {
+            motorSpeedB = 255;
+        }
+    }
+    if (xAxis < 470) //Joystick a gauche
+    {
+        int xMapped = map(xAxis, 470, 0, 0, 255); //Calcul delta vitesse a appliquer
+        
+        // deplacement a gauche
+        motorSpeedA = motorSpeedA + xMapped;
+        motorSpeedB = motorSpeedB - xMapped;
+        
+        // Garder des vitesses de 0 a 255
+        if (motorSpeedA > 255) {
+          motorSpeedA = 255;
+        }
+        if (motorSpeedB < 0) {
+          motorSpeedB = 0;
+        }    
+    }
+
+    // Prevent buzzing at low speeds
+    if (motorSpeedA < 70) {
       motorSpeedA = 0;
     }
-    if (motorSpeedB > 255) {
-      motorSpeedB = 255;
-    }
-    
-  }
-  if (xAxis < 470) {
-    // Convert the increasing X-axis readings from 550 to 1023 into 0 to 255 value
-  
-    int xMapped = map(xAxis, 470, 0, 0, 255);
-    // Move right - decrease right motor speed, increase left motor speed
-    motorSpeedA = motorSpeedA + xMapped;
-    motorSpeedB = motorSpeedB - xMapped;
-    
-    // Confine the range from 0 to 255
-    if (motorSpeedA > 255) {
-      motorSpeedA = 255;
-    }
-    if (motorSpeedB < 0) {
+    if (motorSpeedB < 70) {
       motorSpeedB = 0;
     }
     
-  }
-  // Prevent buzzing at low speeds (Adjust according to your motors. My motors couldn't start moving if PWM value was below value of 70)
-  if (motorSpeedA < 70) {
-    motorSpeedA = 0;
-  }
-  if (motorSpeedB < 70) {
-    motorSpeedB = 0;
-  }
-   
-  analogWrite(enA, motorSpeedA); // Send PWM signal to motor A
-  analogWrite(enB, motorSpeedB); // Send PWM signal to motor B
+    //Ecriture vitesses moteurs
+    analogWrite(enA, motorSpeedA); // Send PWM signal to motor A
+    analogWrite(enB, motorSpeedB); // Send PWM signal to motor B
 
-
-  if (testStruct.BPJoy1 == 0){
-                
-                  
-  uint16_t sendSize = 0;
-
-  ///////////////////////////////////////// Stuff buffer with struct
-  sendSize = myTransfer.txObj(testStruct, sendSize);
-
-  ///////////////////////////////////////// Stuff buffer with array
-  sendSize = myTransfer.txObj(arr, sendSize);
-
-  ///////////////////////////////////////// Send buffer
-  myTransfer.sendData(sendSize);
-  Serial.println (distance);
-  }
-  
-  else {
-    Serial.print("not");
-  }
+    if (testStruct.BPJoy1 == 0) //Releve et envoir de la distance des obstacles si BP joystick appuie
+    {
+        testStruct.Dist_sonar  = distance_sonar();   
+           
+        uint16_t sendSize = 0;
+        sendSize = myTransfer.txObj(testStruct, sendSize);
+        myTransfer.sendData(sendSize);
+        Serial.println (distance);
+    }
 
 }
 
- void motor_auto(char*dir){
-
+void motor_auto(char*dir){
+/*Fonction qui fait tourner les moteurs
+parametres: dir indique la direction desiree du robot:
+                "devant" : avance le robot
+                "derriere" : recule le robot
+                "gauche" : tourne le robot a gauche
+                "droite" : tourne le robot a droite
+*/  
   if (dir == "droite"){
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
@@ -468,7 +443,15 @@ motorSpeedA = map(yAxis, 550, 1023, 0, 255);
     }
   }
 
-bool Turn_sonar(char* dir){
+bool Turn_sonar(char* dir)
+/* Fonction qui tourne le sonar dans la direction dir souhaitee
+et qui retourne si un obstacle est detecte par celui ci
+Parametres possibles:
+        "droite" : torune le sonar de 60 degres a droite
+        "gauche" : torune le sonar de 60 degres a gauche
+        "devant" : mets le sonar devant le 
+*/
+{
  Cremaillere(0);
  int state;
  if (dir == "droite"){
