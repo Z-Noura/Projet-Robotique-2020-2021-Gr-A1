@@ -117,10 +117,9 @@ void loop()
  
   distance = distance_sonar(); 
   
-   int xAxis = testStruct.Joy1X; // Read Joysticks X-axis
-   int yAxis = testStruct.Joy1Y; // Read Joysticks Y-axis 
-							  
-									
+   
+                
+                  
   
 
   int droite,devant,gauche;
@@ -164,7 +163,7 @@ void loop()
     lcd.println();
     testStruct.RFID_State=1;
     pass = 1;
-								 
+                 
     uint16_t sendSize = 0;
 
   //////////////////////////////////////// Stuff buffer with struct
@@ -230,10 +229,10 @@ while (testStruct.Mode == 1){
 }
 void mode_auto(){
  vitesse = 900;
-    droite = Turn_sonar("droite");
-    gauche = Turn_sonar("gauche");
-    devant = Turn_sonar("devant");
-	
+int    droite = Turn_sonar("droite");
+int    gauche = Turn_sonar("gauche");
+int    devant = Turn_sonar("devant");
+  
     if (droite and gauche and devant){
       lcd.setCursor(0,0);
       lcd.print("                 ");
@@ -276,6 +275,10 @@ void mode_auto(){
 
 }
 void mode_manu(){
+
+  int xAxis = testStruct.Joy1X; // Read Joysticks X-axis
+   int yAxis = testStruct.Joy1Y; // Read Joysticks Y-axis 
+   
   if(myTransfer.available())
   {
     // use this variable to keep track of how many
@@ -366,8 +369,8 @@ void mode_manu(){
 
 
   if (testStruct.BPJoy1 == 0){
-								
-									
+                
+                  
   uint16_t sendSize = 0;
 
   ///////////////////////////////////////// Stuff buffer with struct
@@ -511,5 +514,3 @@ int distance_sonar(){
  else{monServomoteur.write(40);    //crémaillère basse
     monServomoteur2.write(140);}
     delay(700);}
-  
-
