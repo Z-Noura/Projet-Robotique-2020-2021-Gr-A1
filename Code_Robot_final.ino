@@ -113,9 +113,10 @@ void loop()
   }
 
   
-  distance = distance_sonar(); 
+  
    int xAxis = testStruct.Joy1X; // Read Joysticks X-axis
    int yAxis = testStruct.Joy2Y; // Read Joysticks Y-axis 
+   int Sw = testStruct.BPJoy1;
   
 
   int droite,devant,gauche;
@@ -284,18 +285,16 @@ if (testStruct.Mode == 2){
   analogWrite(enB, motorSpeedB); // Send PWM signal to motor B
 
 
-  if (digitalRead(49) == 1){
+  if (Sw == 1){
+   distance = distance_sonar(); 
   
-  Serial.println (distance);
-  }
-  else {
-    Serial.print("not");
   }
 
       }
        }
 
-  
+  testStruct.RFID_State = pass;
+  testStruct.Dist_sonar = distance;
   // use this variable to keep track of how many
   // bytes we're stuffing in the transmit buffer
   uint16_t sendSize = 0;
