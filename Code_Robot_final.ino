@@ -2,11 +2,14 @@
 
 #include "SerialTransfer.h"
 #include "Wire.h"
-#include <NewPing.h>
 #include <SPI.h>
 #include <MFRC522.h>
 #include <LiquidCrystal.h>
 #include <Servo.h>
+
+#define echoPin 25 // attach pin D2 Arduino to pin Echo of HC-SR04
+#define trigPin 23 //attach pin D3 Arduino to pin Trig of HC-SR04
+
 
 #define SS_PIN 53
 #define RST_PIN 5
@@ -34,9 +37,6 @@ int distance;
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 LiquidCrystal lcd = LiquidCrystal(40, 38, 36, 34, 32, 30);
-
-
-MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 bool pass = 0;
 
 int vitesse;
@@ -67,6 +67,8 @@ char arr[6];
 
 void setup()
 {
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an OUTPUT
+  pinMode(echoPin, INPUT); // Sets the echoPin as an INPUT
   pinMode(buzzer, OUTPUT);
   pinMode(enA, OUTPUT);
   pinMode(enB, OUTPUT);
@@ -497,15 +499,20 @@ long microsecondsToCentimeters(long microseconds) {
 }
 
 int distance_sonar(){
-  long duration, inches, cm;
+  long duration, inches;
+  int cm;
   bool state;
-  digitalWrite(pinultra, LOW);
+  digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
-  digitalWrite(pinultra, HIGH);
+  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
+  digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(pinultra, LOW);
-
-  cm = microsecondsToCentimeters(duration);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  // Calculating the distance
+  cm = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+  // Displays the distance on the Serial Monitor
   return cm;
   }
  void Cremaillere(int dir){
