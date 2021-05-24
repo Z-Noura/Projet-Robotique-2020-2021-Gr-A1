@@ -36,6 +36,11 @@ int motorSpeedB = 0;
 //Declaration buzzer
 const int buzzer  = 13;
 
+//Declaration pins LED RGB
+int LED_R = 42;
+int LED_G = 44;
+int LED_B = 46;
+
 //Declaration LCD
 LiquidCrystal lcd = LiquidCrystal(40, 38, 36, 34, 32, 30);
 
@@ -119,6 +124,7 @@ void loop()
     
     while (pass == 0)  //Tant de le rfid ne detecte pas la bonne carte
     {  
+        RGB_color(LED_R,LED_G,LED_B,0,0,255);
         if ( ! mfrc522.PICC_IsNewCardPresent()) //Detection de cartes
         {
             return;
@@ -166,12 +172,16 @@ void loop()
             uint16_t sendSize = 0;
             sendSize = myTransfer.txObj(testStruct, sendSize);
             myTransfer.sendData(sendSize);
+            RGB_color(LED_R,LED_G,LED_B,0,255,0);
+            delay(300);
         }
         else                                   //Mauvaise carte
         {  
           lcd.setCursor(0,1);                  //Acces refuse
           Serial.println(" Access denied");
           lcd.print(" Access denied  ");
+          RGB_color(LED_R,LED_G,LED_B,255,0,0);
+          delay(300);
           return;
         }
     }
@@ -233,6 +243,7 @@ void mode_auto()
         motor_auto("arret");   //arret     
     }
     else if (droite)                  //si detection d'obstacles a droite
+    {
         lcd.setCursor(0,0);
         lcd.print("                 ");
         lcd.setCursor(0,0);
@@ -382,6 +393,7 @@ parametres: dir indique la direction desiree du robot:
                 "derriere" : recule le robot
                 "gauche" : tourne le robot a gauche
                 "droite" : tourne le robot a droite
+Vitesse (PWM) par defaut : 200
 */  
   if (dir == "droite"){
     digitalWrite(in1, HIGH);
@@ -390,54 +402,48 @@ parametres: dir indique la direction desiree du robot:
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
 
-    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enA, 200); 
     analogWrite(enB, 200);
-    
-    
+  
   }
   else if (dir == "gauche"){
-     // Set Motor A backward
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
 
-    // Set Motor B backward
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
 
-    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enA, 200); 
     analogWrite(enB, 200);
   }
   else if (dir == "arret"){
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
 
-    // Set Motor B backward
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
 
-    analogWrite(enA, 0); // vitesse moteurs gauches
+    analogWrite(enA, 0); 
     analogWrite(enB, 0);
   }
   else if( dir == "devant"){
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
 
-    // Set Motor B backward
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
 
-    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enA, 200); 
     analogWrite(enB, 200);
     }
    else{
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
 
-    // Set Motor B backward
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
 
-    analogWrite(enA, 200); // vitesse moteurs gauches
+    analogWrite(enA, 200); 
     analogWrite(enB, 200);
     
     }
@@ -452,69 +458,95 @@ Parametres possibles:
         "devant" : mets le sonar devant le 
 */
 {
- Cremaillere(0);
- int state;
- if (dir == "droite"){
-  monServomoteur3.write(150);
-  delay(300);}
- else if (dir == "gauche"){
-  monServomoteur3.write(30);
-  delay(300);
- }
- else if (dir == "devant"){
-  monServomoteur3.write(90);
-  delay(300);
- }
- delay(700);
-
- int Son = distance_sonar();
- if (Son < 30){
-    state = 1;
-    lcd.setCursor(0,0);
-      lcd.print("                 ");
-      lcd.setCursor(0,0);
-      lcd.print("deriere");
-    Serial.println(Son);
-    }
-   else{
-    state = 0;
-     lcd.setCursor(0,0);
-     lcd.print("                 ");
-     lcd.setCursor(0,0);
-     lcd.print("deriere");
-    Serial.println(Son);
-   }
-return state;    
-    
-}
-
-
-long microsecondsToCentimeters(long microseconds) {
-   return microseconds / 29 / 2;
-}
-
-int distance_sonar(){
-  long duration, inches;
-  int cm;
-  bool state;
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
-  duration = pulseIn(echoPin, HIGH);
-  // Calculating the distance
-  cm = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-  // Displays the distance on the Serial Monitor
-  return cm;
+  Cremaillere(0); // descente cremaillere
+  int state;
+  if (dir == "droite"){
+    monServomoteur3.write(150);
+    delay(300);}
+  else if (dir == "gauche"){
+    monServomoteur3.write(30);
+    delay(300);
   }
- void Cremaillere(int dir){
- //Placer ici le code pour la cremaillere 
- if( dir){ monServomoteur.write(180);
-    monServomoteur2.write(0);
-    monServomoteur3.write(88);}
- else{monServomoteur.write(40);    //crémaillère basse
-    monServomoteur2.write(140);}
-    delay(700);}
+  else if (dir == "devant"){
+    monServomoteur3.write(90);
+    delay(300);
+  }
+  delay(700);
+
+  int Son = distance_sonar(); //detection obstacles
+  if (Son < 30){  
+        state = 1;
+        lcd.setCursor(0,0);
+        lcd.print("                 ");
+        lcd.setCursor(0,0);
+        lcd.print("deriere");
+        Serial.println(Son);
+      }
+    else{
+        state = 0;
+        lcd.setCursor(0,0);
+        lcd.print("                 ");
+        lcd.setCursor(0,0);
+        lcd.print("deriere");
+        Serial.println(Son);
+    }
+  return state;     
+}
+
+
+int distance_sonar()
+/* Fonction qui retourne un entier exprimant la distance en cm
+d'un obstacle detecte par le sonar. Dist max 200 cm 
+*/
+{
+    long duration, inches;
+    int cm;
+    bool state;
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+  
+    digitalWrite(trigPin, HIGH); //Emmision d'un signal ultrason
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    
+    duration = pulseIn(echoPin, HIGH); //mesure du temps pris pour recevoir l'echo du signal
+    
+    cm = duration * 0.034 / 2; // calcul de la distance
+    return cm;
+}
+ void Cremaillere(int dir)
+ /*Fonction qui monte ou descent la cremaillere
+  dir = 1 : cremaillere haute
+  dir = 0 : cremaillere basse 
+  */
+ {
+    if( dir)
+    { 
+        monServomoteur.write(180);
+        monServomoteur2.write(0);
+        monServomoteur3.write(88);
+    }
+    else
+    {
+        monServomoteur.write(40);    
+        monServomoteur2.write(140);
+    }
+    delay(700);
+}
+void RGB_color(int red_light_pin,int green_light_pin,int blue_light_pin,int red_light_value, int green_light_value, int blue_light_value)
+/*Fonction permetant de choir les couleur d'une led reb
+Parametres :
+        int red_light_pin    : Pin Led rouge
+        int green_light_pin  : Pin Led verte
+        int blue_light_pin   : Pin Led Bleue
+
+        int red_light_value  : Valeur (PWM) lumiere Rouge
+        int green_light_value: Valeur (PWM) lumiere Verte
+        int blue_light_value : Valeur (PWM) lumiere Bleure
+
+*/
+{
+  analogWrite(red_light_pin, red_light_value);
+  analogWrite(green_light_pin, green_light_value);
+  analogWrite(blue_light_pin, blue_light_value);
+}
