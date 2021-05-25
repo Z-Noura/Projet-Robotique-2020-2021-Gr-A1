@@ -4,20 +4,15 @@
 #include <Adafruit_SSD1306.h>
 #include <SoftwareSerial.h>
 
-//Creation Software serial  /
-
+//Creation Software serial  
 SoftwareSerial mSerial( 0,1);
 
-//Declaration Oled
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-//Declaration communication
 SerialTransfer myTransfer;
 
-//Declaration structure a communiquer
 struct STRUCT {
   int Joy1X ;
   int Joy1Y;
@@ -31,7 +26,6 @@ struct STRUCT {
   bool RFID_State;
 } testStruct;
 
-//Declaration Boutons et Leds
 const byte BPD=3;
 const byte BPG=2;
 const byte BPJD=10;
@@ -56,8 +50,6 @@ bool mode=0;
 byte L=0;
 bool connection=0;
 
-
-//Declarations symboles pour oled
 static const unsigned char PROGMEM fleche[] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0xE0, 0xFF, 0xF8, 0xFF, 0xFE,
 0xFF, 0xFE, 0xFF, 0xF8, 0x00, 0xE0, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -203,9 +195,18 @@ static const unsigned char PROGMEM rfid[] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-void setup() 
-{
-  //Reglages pins boutons et leds
+
+
+
+
+
+
+
+
+
+
+ 
+void setup() {
   pinMode(BPD, INPUT_PULLUP);
   pinMode(BPG, INPUT_PULLUP);
   pinMode(BPJD, INPUT_PULLUP);
@@ -221,31 +222,26 @@ void setup()
   digitalWrite(Led2R, HIGH);  
   
   pinMode(21, OUTPUT);
-  if(analogRead(A6)>800)  //Si tension baterie sup a 800, maintenir relay
-  {
+  if(analogRead(A6)>800){
     digitalWrite(21, HIGH);
   }
-  
   
   Serial.begin(38400);
   mSerial.begin(38400);
   myTransfer.begin(mSerial);
-
  
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   
-  //Nettoie le buffer I2C
+  // Clear the buffer.
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(5,0);
   display.println("Cybertruck"); 
-
-  // Dessine le bitmap sur l'ecran
+  // Draw bitmap on the screen
   display.drawBitmap(0, 16, image_data_Saraarray, 128, 54, 1);
   display.display();
   delay(3000);
-  //Reglages Ecran
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
@@ -255,67 +251,59 @@ void setup()
   display.display();
 }
  
-void loop() 
-{
-  if(analogRead(A6)<800)  //Si tension baterie inf a 800, entindre commande
-  {
+void loop() {
+  if(analogRead(A6)<800){
     digitalWrite(21, LOW);
   } 
-
-  if(millis()- last_time>500) //affichage image acceil apres 500ms
-  {
+  if(millis()-last_time>500){
     last_time=millis();
     acceuil=1;
   }
-
-  if(myTransfer.available()) //Reception Buffer
+  if(myTransfer.available())
   {
-    connection=1; //Connection flag maj
+    connection=1;
+    // use this variable to keep track of how many
+    // bytes we've processed from the receive buffer
     uint16_t recSize = 0;
-    recSize = myTransfer.rxObj(testStruct, recSize);  
+
+    recSize = myTransfer.rxObj(testStruct, recSize);
+    
   }
-  else
-  {
-    connection=0; //Connection flag maj
+  else{
+    connection=0;
   }
-  if(testStruct.RFID_State) //If bonne carte presentee
-  {
-  uint16_t sendSize = 0; //Envoi buffer
-  sendSize = myTransfer.txObj(testStruct, sendSize);
-  myTransfer.sendData(sendSize);
-  
-  if(acceuil) //Acceuil
-  {
-    acceuil_fct();
-  }
+  if(testStruct.RFID_State){
+   
+    if(acceuil){
+      acceuil_fct();
+    }
 
 
-  // MENU
-  if (!digitalRead(BPD))
-  {
-    delay(10);
-    BPD_state=1;
-  }
-  if (digitalRead(BPD) && BPD_state) // si appui sur bp joustick droit
-  {
-    BPD_state=0;                     
-    menu=1;                         
-    menu_fct();    //entree dans fentre du menu
-    while (digitalRead(BPJD)&& digitalRead(BPJG) ){
-    }
-    delay(10);
-    if(!digitalRead(BPJD)){
-      digitalWrite(21, LOW);
-    }
-    if(!digitalRead(BPJG)){ 
+    // MENU
+    if (!digitalRead(BPD)){
       delay(10);
-      acceuil=1;  //Maj flag acceuil
-    }        
+      BPD_state=1;
     }
+    if (digitalRead(BPD) && BPD_state){
+      BPD_state=0;
+      menu=1;
+      menu_fct();
+      while (digitalRead(BPJD)&& digitalRead(BPJG) ){
+      }
+      delay(10);
+      if(!digitalRead(BPJD)){
+        digitalWrite(21, LOW);
+      }
+      if(!digitalRead(BPJG)){
+        delay(10);
+        acceuil=1;
+      }
+      
+      }
 
 
 
-//  Choix des modes
+//    MODE
       if (!digitalRead(BPG)){
       delay(10);
       BPG_state=1;
@@ -324,15 +312,15 @@ void loop()
       BPG_state=0;
       mode=1;
       
-      while (digitalRead(BPJD)&& digitalRead(BPJG)){ 
-        if (analogRead(A0)<100){    //Detecte le mouvement vertical du joystick
-          while(analogRead(A0)<500){  //incremente de 1 si joystick mont
+      while (digitalRead(BPJD)&& digitalRead(BPJG)){
+        if (analogRead(A0)<100){
+          while(analogRead(A0)<500){
         }
           if(L<1){
             L++;
           }
         }
-        if (analogRead(A0)>900){   // decremente de 1 si joystick descendu
+        if (analogRead(A0)>900){
           while(analogRead(A0)>600){
         }
         if(L>0){
@@ -340,14 +328,13 @@ void loop()
         }
         
       }
-      mode_fct();  //Affichage ecran modes
+      mode_fct();
       }
-      if (!digitalRead(BPJD)){  
+      if (!digitalRead(BPJD)){
         delay(10);
         while(!digitalRead(BPJD)){
       }
       delay(10);
-      //Choix des modes selon la position de la fleche
       if(L==0){
         mode_manuel();
       }
@@ -358,7 +345,13 @@ void loop()
       if (!digitalRead(BPJG)){
         delay(10);
         acceuil=1;
-      }    
+      }
+      
+      
+        
+      
+        
+      
       }
       
     
@@ -429,7 +422,7 @@ void mode_fct (){
    display.setTextColor(WHITE);
    display.setCursor(40,0);
    display.println("Mode");
-   if(L==0){       //Deplacement de la fleche selon la valeur de L
+   if(L==0){
      display.drawBitmap(0, 16, fleche, 16, 16, 1);
    }
    if(L==1){
@@ -455,17 +448,33 @@ void mode_manuel(){
   display.setCursor(0,0);
   display.println("Mode Manu");
   display.display();
-  testStruct.Mode=1; //flag mode maj
-
+  testStruct.Mode=1;
   while(digitalRead(BPJG)){
     testStruct.Joy1X=analogRead(A1);
     testStruct.Joy1Y=analogRead(A0);
-    uint16_t sendSize = 0;  //Envoi buffer
-    sendSize = myTransfer.txObj(testStruct, sendSize);
-    myTransfer.sendData(sendSize);
-    delay(20);
+    uint16_t sendSize = 0;
+
+  ///////////////////////////////////////// Stuff buffer with struct
+  sendSize = myTransfer.txObj(testStruct, sendSize);
+
+  ///////////////////////////////////////// Stuff buffer with array
+
+
+  ///////////////////////////////////////// Send buffer
+  myTransfer.sendData(sendSize);
+  delay(20);
   }
-  testStruct.Mode=0; //flag mode maj
+  testStruct.Mode=0;
+   uint16_t sendSize = 0;
+
+  ///////////////////////////////////////// Stuff buffer with struct
+  sendSize = myTransfer.txObj(testStruct, sendSize);
+
+  ///////////////////////////////////////// Stuff buffer with array
+  
+
+  ///////////////////////////////////////// Send buffer
+  myTransfer.sendData(sendSize);
   }
 
 void mode_auto(){
@@ -476,12 +485,28 @@ void mode_auto(){
   display.setCursor(0,0);
   display.println("Mode Auto");
   display.display();
-  testStruct.Mode=2; //flag mode maj
+  testStruct.Mode=2;
+  uint16_t sendSize = 0;
 
-  uint16_t sendSize = 0; //Envoi buffer
+  ///////////////////////////////////////// Stuff buffer with struct
   sendSize = myTransfer.txObj(testStruct, sendSize);
+
+  ///////////////////////////////////////// Stuff buffer with array
+
+
+  ///////////////////////////////////////// Send buffer
   myTransfer.sendData(sendSize);
   while(digitalRead(BPJG)){
   }
   testStruct.Mode=0;
+   
+
+  ///////////////////////////////////////// Stuff buffer with struct
+  sendSize = myTransfer.txObj(testStruct, sendSize);
+
+  ///////////////////////////////////////// Stuff buffer with array
+  
+
+  ///////////////////////////////////////// Send buffer
+  myTransfer.sendData(sendSize);
   }
