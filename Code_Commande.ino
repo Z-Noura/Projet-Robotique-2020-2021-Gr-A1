@@ -5,6 +5,7 @@
 #include <SoftwareSerial.h>
 
 //Creation Software serial  /
+
 SoftwareSerial mSerial( 0,1);
 
 //Declaration Oled
