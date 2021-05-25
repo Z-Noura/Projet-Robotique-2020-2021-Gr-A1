@@ -3,6 +3,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <SoftwareSerial.h>
+
+//Creation Software serial  
 SoftwareSerial mSerial( 0,1);
 
 #define SCREEN_WIDTH 128
