@@ -4,7 +4,7 @@
 #include <Adafruit_SSD1306.h>
 #include <SoftwareSerial.h>
 
-//Creation Software serial
+//Creation Software serial  /
 SoftwareSerial mSerial( 0,1);
 
 //Declaration Oled
