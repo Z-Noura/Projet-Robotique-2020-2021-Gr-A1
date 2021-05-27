@@ -281,7 +281,7 @@ void mode_auto()
         recSize = myTransfer.rxObj(testStruct, recSize); 
     }
 
-
+if (testStruct.Mode != 2){Cremaillere(1);}
 }
 void mode_manu()
 //Mode manu
@@ -455,7 +455,7 @@ et qui retourne si un obstacle est detecte par celui ci
 Parametres possibles:
         "droite" : torune le sonar de 60 degres a droite
         "gauche" : torune le sonar de 60 degres a gauche
-        "devant" : mets le sonar devant le 
+        "devant" : mets le sonar devant le robot
 */
 {
   Cremaillere(0); // descente cremaillere
