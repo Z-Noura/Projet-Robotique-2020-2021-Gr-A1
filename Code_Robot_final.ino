@@ -17,7 +17,7 @@ int distance;
 #define SS_PIN 53
 #define RST_PIN 5
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-bool pass = 0;
+byte pass = 2;
 
 //Declaration pins moteurs
 #define enA 3  // vitesse moteurs gauches
@@ -122,7 +122,7 @@ void loop()
     }
 
     
-    while (pass == 0)  //Tant de le rfid ne detecte pas la bonne carte
+    while (pass == 2)  //Tant de le rfid ne detecte pas la bonne carte
     {  
         RGB_color(LED_R,LED_G,LED_B,0,0,255);
         if ( ! mfrc522.PICC_IsNewCardPresent()) //Detection de cartes
@@ -182,6 +182,7 @@ void loop()
           lcd.print(" Access denied  ");
           RGB_color(LED_R,LED_G,LED_B,255,0,0);
           delay(300);
+          pass = 2;
           return;
         }
     }

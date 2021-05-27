@@ -27,7 +27,7 @@ struct STRUCT {
   bool BPJoy2;
   byte Mode;
   int Dist_sonar;
-  bool RFID_State;
+  byte RFID_State;
 } testStruct;
 
 //Declaration Boutons et Leds
