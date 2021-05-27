@@ -63,7 +63,7 @@ struct STRUCT {
   bool BPJoy2;
   byte Mode;
   int Dist_sonar;
-  char RFID_State;
+  byte RFID_State;
 } testStruct;
 
 void setup()
